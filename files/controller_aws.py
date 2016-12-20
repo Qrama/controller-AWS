@@ -20,12 +20,11 @@ import yaml
 
 
 class Token(object):
-    def __init__(self, url, auth):
-        self.access, self.secret = get_credentials(auth)
+    def __init__(self, url, username, password):
+        self.access, self.secret = get_credentials(username)
         self.type = 'aws'
         self.supportlxd = False
         self.url = url
-
 
     def get_credentials(self):
         return {'auth-type': 'access-key', 'access-key': self.access, 'secret-key': self.secret}
@@ -34,9 +33,9 @@ class Token(object):
         return {'type': 'aws', 'auth-types': ['access-key'], 'endpoint': self.url}
 
 
-def get_credentials(auth):
+def get_credentials(username):
     with open('/home/ubuntu/.local/share/juju/credentials.yaml', 'r') as cred:
-        credentials = yaml.load(cred)['credentials']['aws'][auth.username]
+        credentials = yaml.load(cred)['credentials']['aws'][username]
     return credentials['access-key'], credentials['secret-key']
 
 
