@@ -27,6 +27,12 @@ class Token(object):
         self.url = url
 
 
+def get_credentials(username):
+    with open('/home/ubuntu/.local/share/juju/credentials.yaml', 'r') as cred:
+        credentials = yaml.load(cred)['credentials']['aws'][username]
+    return credentials['access-key'], credentials['secret-key']
+
+
 def create_controller(name, region, credentials):
     path = create_credentials_file(region, credentials)
     check_call(['juju', 'add-credential', 'aws', '-f', path])
