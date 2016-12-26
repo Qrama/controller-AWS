@@ -26,18 +26,6 @@ class Token(object):
         self.supportlxd = False
         self.url = url
 
-    def get_credentials(self):
-        return {'auth-type': 'access-key', 'access-key': self.access, 'secret-key': self.secret}
-
-    def get_cloud(self):
-        return {'type': 'aws', 'auth-types': ['access-key'], 'endpoint': self.url}
-
-
-def get_credentials(username):
-    with open('/home/ubuntu/.local/share/juju/credentials.yaml', 'r') as cred:
-        credentials = yaml.load(cred)['credentials']['aws'][username]
-    return credentials['access-key'], credentials['secret-key']
-
 
 def create_controller(name, region, credentials):
     path = create_credentials_file(region, credentials)
