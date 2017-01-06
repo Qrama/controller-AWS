@@ -14,27 +14,19 @@
 # You should have received a copy of the GNU Affero General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 # pylint: disable=c0111,c0301,c0325, r0903,w0406
-
 from subprocess import check_output, check_call
 import yaml
 
 
 class Token(object):
     def __init__(self, url, username, password):
-        self.access, self.secret = get_credentials(username)
         self.type = 'aws'
         self.supportlxd = False
         self.url = url
 
 
-def get_credentials(username):
-    with open('/home/ubuntu/.local/share/juju/credentials.yaml', 'r') as cred:
-        credentials = yaml.load(cred)['credentials']['aws'][username]
-    return credentials['access-key'], credentials['secret-key']
-
-
 def create_controller(name, region, credentials):
-    path = create_credentials_file(region, credentials)
+    path = create_credentials_file(name, credentials)
     check_call(['juju', 'add-credential', 'aws', '-f', path])
     output = check_output(['juju', 'bootstrap', 'aws/{}'.format(region), name])
     return output
@@ -44,13 +36,11 @@ def get_supported_series():
     return ['precise', 'trusty', 'xenial', 'yakkety']
 
 
-def create_credentials_file(region, credentials):
+def create_credentials_file(name, credentials):
     path = '/tmp/credentials.yaml'
-    data = {'aws': {'default-credential': 'admin',
-                    'default-region': region,
-                    'admin': {'auth-type': 'access-key',
-                              'access-key': credentials['access_key'],
-                              'secret-key': credentials['secret_key']}}}
+    data = {'credentials': {'aws': {name: {'auth-type': 'access-key',
+                                           'access-key': credentials['access-key'],
+                                           'secret-key': credentials['secret-key']}}}}
     with open(path, 'w') as dest:
         yaml.dump(data, dest, default_flow_style=True)
     return path
