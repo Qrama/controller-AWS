@@ -17,15 +17,15 @@
 from os import remove
 from shutil import copyfile
 
-from charms.reactive import when_not, hook, set_state
+from charms.reactive import when, when_not, set_state, remove_state
 from charmhelpers.core.hookenv import status_set, charm_dir
 from charmhelpers.core.host import service_restart, chownr
 
-from sojobo_api.settings import SOJOBO_API_DIR as api_dir
 
-
+@when('sojobo.available')
 @when_not('controller-aws.installed')
-def install():
+def install(sojobo):
+    api_dir = list(sojobo.connection())[0]['api-dir']
     copyfile('{}/files/controller_aws.py'.format(charm_dir()), '{}/controllers/controller_aws.py'.format(api_dir))
     chownr(api_dir, 'sojobo', 'www-data', chowntopdir=True)
     service_restart('nginx')
@@ -33,7 +33,9 @@ def install():
     set_state('controller-aws.installed')
 
 
-@hook('stop')
-def remove_controller():
+@when('sojobo.removed')
+def remove_controller(sojobo):
+    api_dir = sojobo.connection()['api-dir']
     remove('{}/controllers/controller_aws.py'.format(api_dir))
     service_restart('nginx')
+    remove_state('controller-aws.installed')

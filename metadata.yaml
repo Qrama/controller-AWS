@@ -6,7 +6,7 @@ description: |
 tags: ['misc']
 subordinate: true
 requires:
-    sojobo-api:
-        interface: juju-info
+    sojobo:
+        interface: sojobo
         scope: container
 series: ['xenial']

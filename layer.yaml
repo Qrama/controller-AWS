@@ -1,2 +1,2 @@
-includes: ['layer:basic']
+includes: ['layer:basic', 'interface:sojobo']
 repo: git@github.com:Qrama/controller-aws.git
