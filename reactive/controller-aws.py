@@ -33,7 +33,7 @@ def install(sojobo):
     set_state('controller-aws.installed')
 
 
-@when('sojobo.removed')
+@when('sojobo.removed', 'controller-aws.installed')
 def remove_controller(sojobo):
     api_dir = sojobo.connection()['api-dir']
     remove('{}/controllers/controller_aws.py'.format(api_dir))
