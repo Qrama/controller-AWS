@@ -35,7 +35,7 @@ def install(sojobo):
 
 @when('sojobo.removed', 'controller-aws.installed')
 def remove_controller(sojobo):
-    api_dir = sojobo.connection()['api-dir']
+    api_dir = list(sojobo.connection())[0]['api-dir']
     remove('{}/controllers/controller_aws.py'.format(api_dir))
     service_restart('nginx')
     remove_state('controller-aws.installed')
