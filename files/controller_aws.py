@@ -32,7 +32,7 @@ class Token(object):
 def create_controller(name, region, credentials):
     path = create_credentials_file(name, credentials)
     check_call(['juju', 'add-credential', 'aws', '-f', path, '--replace'])
-    output = check_output(['juju', 'bootstrap', 'aws/{}'.format(region), name, '--credential', name])
+    output = check_output(['juju', 'bootstrap', '--agent-version=2.1.2', 'aws/{}'.format(region), name, '--credential', name])
     return output
 
 
@@ -57,7 +57,7 @@ def create_credentials_file(name, credentials):
 def get_public_url(c_name):
     jujudata = JujuData()
     result = jujudata.controllers()
-    return result[c_name]['api-endpoints'][1]
+    return result[c_name]['api-endpoints'][0]
 
 
 def get_gui_url(controller, model):
