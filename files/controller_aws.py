@@ -54,6 +54,14 @@ def create_credentials_file(name, credentials):
         yaml.dump(data, dest, default_flow_style=True)
     return path
 
+def generate_cred_file(name, credentials):
+    result = {}
+    result['type'] = 'access-key'
+    result['name'] = name
+    result['key'] = {'access-key': credentials['access-key'], 'secret-key': credentials['secret-key']}
+    return result
+
+
 def get_public_url(c_name):
     jujudata = JujuData()
     result = jujudata.controllers()
