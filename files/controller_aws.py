@@ -17,6 +17,7 @@
 from subprocess import check_output, check_call, CalledProcessError
 from sojobo_api.api import w_errors as errors
 from flask import abort
+import json
 import yaml
 from juju.client.connection import JujuData
 
@@ -58,7 +59,7 @@ def generate_cred_file(name, credentials):
     result = {}
     result['type'] = 'access-key'
     result['name'] = name
-    result['key'] = {'access-key': credentials['access-key'], 'secret-key': credentials['secret-key']}
+    result['key'] = json.dumps({'access-key': credentials['access-key'], 'secret-key': credentials['secret-key']})
     return result
 
 
