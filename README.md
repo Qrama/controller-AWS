@@ -14,5 +14,5 @@ To disable AWS-clouds, just remove the application.
 Report bugs on <a href="https://github.com/tengu-team/layer-controller-aws/issues">Github</a>
 
 # Authors
-Mathijs Moerman <mathijs.moerman@tengu.io>
-Sébastien Pattyn <sebastien.pattyn@tengu.io>
+- Mathijs Moerman <mathijs.moerman@tengu.io>
+- Sébastien Pattyn <sebastien.pattyn@tengu.io>
