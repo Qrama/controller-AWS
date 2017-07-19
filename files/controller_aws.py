@@ -14,14 +14,16 @@
 # You should have received a copy of the GNU Affero General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 # pylint: disable=c0111,c0301,c0325, r0903,w0406
-from subprocess import check_output, check_call, CalledProcessError
+from subprocess import check_output, check_call
 from sojobo_api.api import w_errors as errors
 from flask import abort
 import json
 import yaml
 from juju.client.connection import JujuData
 
+
 CRED_KEYS = ['access-key', 'secret-key']
+
 
 class Token(object):
     def __init__(self, url, username, password):
@@ -65,11 +67,15 @@ def generate_cred_file(name, credentials):
     return result
 
 
+# Currently not being used, but already provided if we encounter a cloud which requires some
+# specific logic to return this data
 def get_public_url(c_name):
     jujudata = JujuData()
     result = jujudata.controllers()
     return result[c_name]['api-endpoints'][0]
 
 
+# Currently not being used, but already provided if we encounter a cloud which requires some
+# specific logic to return this data
 def get_gui_url(controller, model):
     return 'https://{}/gui/{}'.format(controller.public_ip, model.m_uuid)
