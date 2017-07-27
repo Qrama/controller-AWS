@@ -35,7 +35,7 @@ class Token(object):
 def create_controller(name, region, credentials):
     path = create_credentials_file(name, credentials)
     check_call(['juju', 'add-credential', 'aws', '-f', path, '--replace'])
-    output = check_output(['juju', 'bootstrap', '--agent-version=2.1.2', 'aws/{}'.format(region), name, '--credential', name])
+    output = check_output(['juju', 'bootstrap', '--agent-version=2.2.2', 'aws/{}'.format(region), name, '--credential', name])
     return output
 
 
