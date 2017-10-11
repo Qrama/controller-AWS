@@ -32,16 +32,20 @@ class Token(object):
         self.url = url
 
 
-def create_controller(name, region, credentials):
-    path = create_credentials_file(name, credentials)
+def create_controller(name, region, credentials, cred_name):
+    path = create_credentials_file(cred_name, credentials)
     check_call(['juju', 'add-credential', 'aws', '-f', path, '--replace'])
-    output = check_output(['juju', 'bootstrap', '--agent-version=2.2.2', 'aws/{}'.format(region), name, '--credential', name])
+    output = check_output(['juju', 'bootstrap', '--agent-version=2.2.2', 'aws/{}'.format(region), cred_name, '--credential', name])
     return output
 
 
 def get_supported_series():
     return ['precise', 'trusty', 'xenial', 'yakkety']
 
+def get_supported_regions():
+    return ['us-east-1', 'us-east-2', 'us-west-1', 'us-west-2', 'ca-central-1',
+            'eu-west-1', 'eu-west-2', 'eu-central-1', 'ap-south-1', 'ap-southeast-1',
+            'ap-southeast-2', 'ap-northeast-1', 'ap-northeast-2', 'sa-east-1']
 
 def create_credentials_file(name, credentials):
     if len(CRED_KEYS) == len(list(credentials.keys())):
