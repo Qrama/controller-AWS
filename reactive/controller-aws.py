@@ -27,6 +27,8 @@ from charmhelpers.core.host import service_restart, chownr
 def install(sojobo):
     api_dir = list(sojobo.connection())[0]['api-dir']
     copyfile('{}/files/controller_aws.py'.format(charm_dir()), '{}/controllers/controller_aws.py'.format(api_dir))
+    copyfile('{}/files/bootstrap_aws_controller.py'.format(charm_dir()), '{}/scripts/bootstrap_aws_controller.py'.format(api_dir))
+    copyfile('{}/files/add_aws_credential.py'.format(charm_dir()), '{}/scripts/add_aws_credential.py'.format(api_dir))
     chownr(api_dir, 'sojobo', 'www-data', chowntopdir=True)
     service_restart('nginx')
     status_set('active', 'data copied')
@@ -37,5 +39,7 @@ def install(sojobo):
 def remove_controller(sojobo):
     api_dir = list(sojobo.connection())[0]['api-dir']
     remove('{}/controllers/controller_aws.py'.format(api_dir))
+    remove('{}/scripts/bootstrap_aws_controller.py'.format(api_dir))
+    remove('{}/scripts/add_aws_credential.py'.format(api_dir))
     service_restart('nginx')
     remove_state('controller-aws.installed')
