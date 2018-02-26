@@ -23,6 +23,7 @@ import hashlib
 sys.path.append('/opt')
 from juju import tag
 from juju.client import client
+from juju.controller import Controller
 from sojobo_api import settings  #pylint: disable=C0413
 from sojobo_api.api import w_datastore as ds, w_juju as juju  #pylint: disable=C0413
 
@@ -30,7 +31,6 @@ class JuJu_Token(object):  #pylint: disable=R0903
     def __init__(self):
         self.username = settings.JUJU_ADMIN_USER
         self.password = settings.JUJU_ADMIN_PASSWORD
-        self.is_admin = False
 
 async def add_credential(username, credentials):
     try:
@@ -40,12 +40,12 @@ async def add_credential(username, credentials):
         credential_name = 't{}'.format(hashlib.md5(cred['name'].encode('utf')).hexdigest())
         controllers = ds.get_cloud_controllers(c_type)
         for con in controllers:
-            controller = juju.Controller_Connection(token, con)
-            if controller.c_type == c_type:
-                async with controller.connect(token) as con_juju:
-                    logger.info('%s -> Adding credentials', con)
-                    await juju.update_cloud(con_juju, cred['name'], username)
-                    logger.info('%s -> controller updated', con)
+            controller = Controller()
+            await controller.connect(con['api-endpoints'][0], token.username, token.password, con['ca-cert'])
+            logger.info('%s -> Adding credentials', con['name'])
+            await juju.update_cloud(controller, cred['name'], username)
+            logger.info('%s -> controller updated', con['name'])
+            await controller.disconnect()
         ds.set_credential_ready(username, cred['name'])
         logger.info('Succesfully added credential')
     except Exception as e:

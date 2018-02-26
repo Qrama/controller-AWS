@@ -26,6 +26,7 @@ import yaml
 import json
 from juju import tag
 from juju.client import client
+from juju.controller import Controller
 sys.path.append('/opt')
 from sojobo_api import settings  #pylint: disable=C0413
 from sojobo_api.api import w_datastore as datastore, w_juju as juju  #pylint: disable=C0413
@@ -35,7 +36,6 @@ class JuJu_Token(object):  #pylint: disable=R0903
     def __init__(self):
         self.username = settings.JUJU_ADMIN_USER
         self.password = settings.JUJU_ADMIN_PASSWORD
-        self.is_admin = True
 
 
 async def bootstrap_google_controller(name, region, cred_name):#pylint: disable=E0001
@@ -45,8 +45,6 @@ async def bootstrap_google_controller(name, region, cred_name):#pylint: disable=
         valid_cred_name = 't{}'.format(hashlib.md5(cred_name.encode('utf')).hexdigest())
         credential = juju.get_credential(token.username, cred_name)
         logger.info(credential)
-        if not credential['state'] == 'ready':
-            raise Exception('The Credential {} is not ready yet.'.format(credential['name']))
         juju.get_controller_types()['aws'].check_valid_credentials(credential['credential'])
         cred_path = '/home/{}/credentials'.format(settings.SOJOBO_USER)
         if not os.path.exists(cred_path):
@@ -71,6 +69,7 @@ async def bootstrap_google_controller(name, region, cred_name):#pylint: disable=
         check_output(['juju', 'change-user-password', 'admin', '-c', name],
                      input=bytes('{}\n{}\n'.format(token.password, token.password), 'utf-8'))
 
+        con_data = {}
         logger.info('Updating controller in database')
         with open(os.path.join(str(Path.home()), '.local', 'share', 'juju', 'controllers.yaml'), 'r') as data:
             con_data = yaml.load(data)
@@ -82,22 +81,22 @@ async def bootstrap_google_controller(name, region, cred_name):#pylint: disable=
             con_data['controllers'][name]['ca-cert'])
 
         logger.info('Connecting to controller')
-        controller = juju.Controller_Connection(token, name)
+        controller = Controller()
 
         logger.info('Adding existing credentials and default models to database')
         credentials = datastore.get_credentials(token.username)
-        async with controller.connect(token) as juju_con:
-            for cred in credentials:
-                if cred['name'] != cred_name:
-                    await juju.update_cloud(juju_con, cred['name'], token.username)
-            models = await juju_con.get_models()
-            for model in models.serialize()['user-models']:
-                model = model.serialize()['model'].serialize()
-                # TODO: Checken of model al bestaat?
-                new_model = datastore.create_model(model['name'], state='Model is being deployed', uuid='')
-                datastore.add_model_to_controller(name, new_model["_key"])
-                datastore.set_model_state(new_model["_key"], 'ready', credential=cred_name, uuid=model['uuid'])
-                datastore.set_model_access(new_model["_key"], token.username, 'admin')
+        await controller.connect(con_data['controllers'][name]['api-endpoints'][0], token.username, token.password, con_data['controllers'][name]['ca-cert'])
+        for cred in credentials:
+            if cred['name'] != cred_name:
+                await juju.update_cloud(controler, cred['name'], token.username)
+        controller_facade = client.ControllerFacade.from_connection(controller.connection)
+        models = await controller_facade.AllModels()
+        for model in models.user_models:
+            new_model = datastore.create_model(model.model.name, state='Model is being deployed', uuid='')
+            datastore.add_model_to_controller(model.model.name, new_model["_key"])
+            datastore.set_model_state(new_model["_key"], 'ready', credential=cred_name, uuid=model.model.uuid)
+            datastore.set_model_access(new_model["_key"], token.username, 'admin')
+        await controller.disconnect()
         logger.info('Controller succesfully created!')
     except Exception:  #pylint: disable=W0703
         exc_type, exc_value, exc_traceback = sys.exc_info()
