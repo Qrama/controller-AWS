@@ -26,50 +26,56 @@ import json
 CRED_KEYS = ['access-key', 'secret-key']
 
 
-class Token(object):
-    def __init__(self, url):
-        self.type = 'aws'
-        self.supportlxd = False
-        self.url = url
-
-
-def create_controller(name, data):
+def create_controller(name, region, credential, username, password):
     Popen(["python3", "{}/scripts/bootstrap_aws_controller.py".format(settings.SOJOBO_API_DIR),
-           name, data['region'], data['credential']])
-    return 202, 'Environment {} is being created in region {}'.format(name, data['region'])
+           name, region, credential, username, password])
+    return 202, 'Environment {} is being created in region {}'.format(name, region)
 
 
 def get_supported_series():
     return ['trusty', 'xenial', 'yakkety']
+
 
 def get_supported_regions():
     return ['us-east-1', 'us-east-2', 'us-west-1', 'us-west-2', 'ca-central-1',
             'eu-west-1', 'eu-west-2', 'eu-central-1', 'ap-south-1', 'ap-southeast-1',
             'ap-southeast-2', 'ap-northeast-1', 'ap-northeast-2', 'sa-east-1']
 
+
+def get_cred_keys():
+    return CRED_KEYS
+
+
 def check_valid_credentials(credentials):
     wrong_keys = []
     if len(CRED_KEYS) == len(list(credentials.keys())):
         for cred in CRED_KEYS:
-            if not cred in list(credentials.keys()):
+            if cred not in list(credentials.keys()):
                 wrong_keys.append(cred)
-    if len(wrong_keys)>0:
+    if len(wrong_keys) > 0:
         error = errors.key_does_not_exist(wrong_keys)
         abort(error[0], error[1])
 
 
-def add_credential(user, data):
-    check_valid_credentials(data['credential'])
-    datastore.add_credential(user, data)
-    Popen(["python3", "{}/scripts/add_aws_credential.py".format(settings.SOJOBO_API_DIR),
-           user, str(data), settings.SOJOBO_API_DIR])
-    return 202, 'Credentials are being added for user {}'.format(user)
-
-
 def generate_cred_file(name, credentials):
+    print(credentials)
     result = {
         'type': 'access-key',
         'name': name,
-        'key': json.dumps({'access-key': credentials['access-key'], 'secret-key': credentials['secret-key']})
+        'key': str(json.dumps({'access-key': credentials['credential']['access-key'], 'secret-key': credentials['credential']['secret-key']}))
     }
     return result
+
+
+def generate_update_cred_file(filepath):
+    with open(filepath) as json_data:
+        data = json.load(json_data)
+    return data
+
+
+def add_credential(user, juju_username, juju_password, credential):
+    check_valid_credentials(credential['credential'])
+    datastore.add_credential(user, credential)
+    Popen(["python3", "{}/scripts/add_aws_credential.py".format(settings.SOJOBO_API_DIR),
+           user, juju_username, juju_password, str(credential)])
+    return 202, 'Credentials are being added for user {}'.format(user)
