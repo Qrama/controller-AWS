@@ -108,10 +108,11 @@ async def bootstrap_aws_controller(c_name, region, cred_name, username, password
             changes = client.ModifyControllerAccess('superuser', 'grant', user)
             await controller_facade.ModifyControllerAccess([changes])
 
+        c_info = datastore.get_controller(c_name)
         models = await controller_facade.AllModels()
         for model in models.user_models:
             if model:
-                m_key = juju.construct_model_key(c_name, model.model.name)
+                m_key = juju.construct_model_key(c_info['name'], model.model.name)
                 logger.info(model.model.name)
                 if username != tengu_username:
                     model_tag = tag.model(model.model.uuid)
